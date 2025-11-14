@@ -1,0 +1,128 @@
+*Project: Libra*
+
+---
+
+### *Project Objective*
+
+Create a decentralized messaging system with:
+
+* No external server dependencies
+* Peer discovery and encrypted messaging over HTTPS tunnels
+* Local-first database with merge-sync logic
+* Cross-platform support (Windows, Linux, Android)
+
+---
+
+### *PHASE 1 – INITIAL SETUP*
+
+*1. Project Structure*
+
+
+libra/
+├── main.py
+├── peer/
+│   ├── peer_discovery.py
+│   ├── tunnel_handler.py
+│   └── connection_manager.py
+├── db/
+│   ├── db_handler.py
+│   ├── message_sync.py
+│   └── schema.sql
+├── sync/
+│   └── crdt_engine.py
+├── ui/
+│   ├── main_ui.py
+│   └── connection_view.py
+├── utils/
+│   └── crypto_utils.py
+├── config.py
+├── requirements.txt
+
+
+---
+
+### *PHASE 2 – BACKEND FUNCTIONALITY*
+
+*2. Local Database (db/db\_handler.py)*
+
+* Use SQLite or LiteDB (cross-platform local storage)
+* Message schema with timestamps, author IDs, message IDs
+* Track peer history and last sync points
+
+*3. Message Sync Engine (sync/crdt\_engine.py)*
+
+* Implement merge-friendly message model (CRDT preferred: Automerge, Yjs logic)
+* Use timestamps or vector clocks to resolve conflicts
+* Merge only deltas on peer contact
+
+*4. Peer Tunneling (peer/tunnel\_handler.py)*
+
+* Use HTTPS/WebRTC tunnels for NAT traversal
+* Implement fallback peer relay via optional TURN/STUN integration
+* Keep all peer connections encrypted end-to-end
+
+*5. Peer Discovery (peer/peer\_discovery.py)*
+
+* LAN-based discovery via UDP broadcast
+* Optionally allow QR code/manual connection for remote users
+* Store known peer fingerprints in local DB
+
+---
+
+### *PHASE 3 – FRONTEND FUNCTIONALITY*
+
+*6. UI Interface (ui/main\_ui.py)*
+
+* Threaded message interface (per-peer chat)
+* Peer status and identity view
+* Send/receive with live updates
+
+*7. Connection View (ui/connection\_view\.py)*
+
+* Connect to peer via QR/manual IP
+* View current peers, sync status, last seen time
+
+---
+
+### *PHASE 4 – FEATURE INCREMENTATION*
+
+*8. Multi-device Linking*
+
+* Share peer identity securely across devices
+* Use device keys + main user ID to sync chain of trust
+* Prevent double-message delivery via device tagging
+
+*9. File Transfer Support*
+
+* Attach files to message payloads
+* Chunk large files and stream via tunnel
+
+*10. Offline-to-Online Queue Recovery*
+
+* Buffer unsent messages when peer is unreachable
+* Auto-sync queue on reconnect
+* Maintain integrity via message IDs and sync acknowledgements
+
+---
+
+### *Dependencies (requirements.txt)*
+
+
+sqlite3
+cryptography
+aiohttp
+websockets
+PyQt5
+qrcode
+
+
+WebRTC integration may require external tools or wrappers, depending on the environment.
+
+---
+
+### *Execution Notes*
+
+* Start with Windows/Linux desktop
+* Android integration via Kivy or Flutter wrapper (deferred)
+* Peer discovery and sync must never expose IPs publicly unless explicitly allowed
+* All data must be stored locally unless user exports/imports
