@@ -1,30 +1,30 @@
 import asyncio
+import json
+import msgpack
 from aiohttp import web
 
 class TunnelHandler:
-    import time
-    import msgpack
+    # Simple in-memory rate limiter (per connection)
+    _rate_limit_window = 5  # seconds
+    _rate_limit_max = 10    # max messages per window
+    _connection_times = {}
 
-        # Simple in-memory rate limiter (per connection)
-        _rate_limit_window = 5  # seconds
-        _rate_limit_max = 10    # max messages per window
-        _connection_times = {}
+    def _is_rate_limited(self, connection_id):
+        import time
+        now = time.time()
+        times = self._connection_times.get(connection_id, [])
+        # Remove old timestamps
+        times = [t for t in times if now - t < self._rate_limit_window]
+        self._connection_times[connection_id] = times
+        if len(times) >= self._rate_limit_max:
+            return True
+        self._connection_times[connection_id].append(now)
+        return False
 
-        def _is_rate_limited(self, connection_id):
-            now = time.time()
-            times = self._connection_times.get(connection_id, [])
-            # Remove old timestamps
-            times = [t for t in times if now - t < self._rate_limit_window]
-            self._connection_times[connection_id] = times
-            if len(times) >= self._rate_limit_max:
-                return True
-            self._connection_times[connection_id].append(now)
-            return False
-
-        def _authenticate_message(self, msg):
-            # Placeholder for authentication logic (e.g., check signature, token)
-            # Return True if authenticated, False otherwise
-            return True if msg.get('type') else False
+    def _authenticate_message(self, msg):
+        # Placeholder for authentication logic (e.g., check signature, token)
+        # Return True if authenticated, False otherwise
+        return True if msg.get('type') else False
     """
     Handles NAT traversal for peer-to-peer connections using HTTPS tunneling.
     This is a simplified implementation that provides WebSocket-based tunneling.
@@ -32,11 +32,13 @@ class TunnelHandler:
     """
     
     def __init__(self, stun_server="stun:stun.l.google.com:19302", turn_server=None, turn_username=None, turn_password=None):
+        import zlib
         self.stun_server = stun_server
         self.turn_server = turn_server
         self.turn_username = turn_username
         self.turn_password = turn_password
         self.connections = {}
+        self.zlib = zlib
 
     async def handle_offer(self, offer):
         """
@@ -58,39 +60,51 @@ class TunnelHandler:
         # Store connection
         connection_id = id(ws)
         self.connections[connection_id] = ws
+        stream_id = request.query.get('stream_id', 'default')
 
         try:
             async for msg in ws:
-                # Rate limiting
-                if self._is_rate_limited(connection_id):
-                    await ws.send_str("Rate limit exceeded. Try again later.")
-                    continue
-
                 # Message batching: accept msgpack-packed list of messages
                 if msg.type == web.WSMsgType.BINARY:
                     try:
-                        batch = msgpack.unpackb(msg.data, raw=False)
+                        # Decompress if possible
+                        try:
+                            data = self.zlib.decompress(msg.data)
+                        except Exception:
+                            data = msg.data
+                        batch = msgpack.unpackb(data, raw=False)
                         if isinstance(batch, list):
                             for item in batch:
+                                # Add stream multiplexing tag
+                                item['stream_id'] = stream_id
+                                if self._is_rate_limited(connection_id):
+                                    await ws.send_bytes(msgpack.packb({"status": "rate_limited"}))
+                                    continue
                                 if self._authenticate_message(item):
-                                    # Process authenticated message
-                                    await ws.send_bytes(msgpack.packb({"status": "ok", "type": item.get("type")}))
+                                    resp = {"status": "ok", "type": item.get("type"), "stream_id": stream_id}
+                                    await ws.send_bytes(self.zlib.compress(msgpack.packb(resp)))
                                 else:
-                                    await ws.send_bytes(msgpack.packb({"status": "auth_failed"}))
+                                    resp = {"status": "auth_failed", "stream_id": stream_id}
+                                    await ws.send_bytes(self.zlib.compress(msgpack.packb(resp)))
                         else:
-                            await ws.send_bytes(msgpack.packb({"status": "invalid_batch"}))
+                            resp = {"status": "invalid_batch", "stream_id": stream_id}
+                            await ws.send_bytes(self.zlib.compress(msgpack.packb(resp)))
                     except Exception as e:
-                        await ws.send_bytes(msgpack.packb({"status": "error", "error": str(e)}))
+                        resp = {"status": "error", "error": str(e), "stream_id": stream_id}
+                        await ws.send_bytes(self.zlib.compress(msgpack.packb(resp)))
                 elif msg.type == web.WSMsgType.TEXT:
-                    # For text, treat as single message
                     try:
                         item = json.loads(msg.data)
+                        item['stream_id'] = stream_id
+                        if self._is_rate_limited(connection_id):
+                            await ws.send_str(json.dumps({"status": "rate_limited", "stream_id": stream_id}))
+                            continue
                         if self._authenticate_message(item):
-                            await ws.send_str(json.dumps({"status": "ok", "type": item.get("type")}))
+                            await ws.send_str(json.dumps({"status": "ok", "type": item.get("type"), "stream_id": stream_id}))
                         else:
-                            await ws.send_str(json.dumps({"status": "auth_failed"}))
+                            await ws.send_str(json.dumps({"status": "auth_failed", "stream_id": stream_id}))
                     except Exception as e:
-                        await ws.send_str(json.dumps({"status": "error", "error": str(e)}))
+                        await ws.send_str(json.dumps({"status": "error", "error": str(e), "stream_id": stream_id}))
                 elif msg.type == web.WSMsgType.ERROR:
                     print(f"WebSocket connection closed with exception {ws.exception()}")
                     break

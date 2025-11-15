@@ -1,3 +1,65 @@
+import os
+from cryptography.fernet import Fernet
+
+def generate_encryption_key(path: str):
+    key = Fernet.generate_key()
+    with open(path, 'wb') as f:
+        f.write(key)
+    return key
+
+def load_encryption_key(path: str):
+    with open(path, 'rb') as f:
+        return f.read()
+
+def encrypt_data(data: bytes, key: bytes) -> bytes:
+    f = Fernet(key)
+    return f.encrypt(data)
+
+def decrypt_data(token: bytes, key: bytes) -> bytes:
+    f = Fernet(key)
+    return f.decrypt(token)
+
+def secure_wipe(data: bytearray):
+    for i in range(len(data)):
+        data[i] = 0
+    del data
+
+def rotate_onion_address(current_address: str) -> str:
+    """Stub for rotating onion address for privacy."""
+    # Actual implementation would interact with Tor control
+    return current_address  # Replace with new address logic
+
+def send_dummy_traffic():
+    """Stub for sending constant-rate dummy traffic to prevent fingerprinting."""
+    pass
+# Add Fernet-based encryption utilities and secure memory wiping
+import os
+from cryptography.fernet import Fernet
+
+def generate_encryption_key(path: str):
+    key = Fernet.generate_key()
+    with open(path, 'wb') as f:
+        f.write(key)
+    return key
+
+def load_encryption_key(path: str):
+    with open(path, 'rb') as f:
+        return f.read()
+
+def encrypt_data(data: bytes, key: bytes) -> bytes:
+    f = Fernet(key)
+    return f.encrypt(data)
+
+def decrypt_data(token: bytes, key: bytes) -> bytes:
+    f = Fernet(key)
+    return f.decrypt(token)
+
+def secure_wipe(data: bytearray):
+    for i in range(len(data)):
+        data[i] = 0
+    del data
+
+
 """Cryptography utilities for Libra (Phase 3).
 
 Implements:
@@ -8,7 +70,6 @@ Implements:
 
 This module uses the `cryptography` package.
 """
-from __future__ import annotations
 
 import json
 import base64

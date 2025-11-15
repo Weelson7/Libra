@@ -1,3 +1,4 @@
+# Core dependencies
 cryptography==40.0.2
 aiohttp==3.8.5
 websockets==11.0.3
@@ -6,4 +7,12 @@ qrcode==7.4
 aiortc==1.4.0
 pytest==7.4.0
 
+# Tor integration
 stem==1.8.0
+
+# Phase 8: Security testing and scanning tools
+safety==3.0.1              # CVE vulnerability scanner
+bandit==1.7.5              # Python security linter
+pip-audit==2.6.1           # PyPA vulnerability scanner
+psutil==5.9.6              # System and process monitoring
+msgpack==1.0.7             # Lightweight serialization (performance optimization)

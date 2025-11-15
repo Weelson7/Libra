@@ -4,8 +4,16 @@ from typing import List, Optional, Dict
 
 class DeviceManager:
     def __init__(self, db_path: str):
-        self.conn = sqlite3.connect(db_path)
+        self.db_path = db_path
+        self.conn: Optional[sqlite3.Connection] = None
+        self._connect()
         self._init_schema()
+    
+    def _connect(self):
+        """Establish database connection."""
+        if self.conn is None:
+            self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row
 
     def _init_schema(self):
         cur = self.conn.cursor()
@@ -48,3 +56,15 @@ class DeviceManager:
         cur = self.conn.cursor()
         cur.execute('UPDATE devices SET last_active = CURRENT_TIMESTAMP WHERE device_id = ?', (device_id,))
         self.conn.commit()
+    
+    def close(self):
+        """Close database connection."""
+        if self.conn:
+            self.conn.close()
+            self.conn = None
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

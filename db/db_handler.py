@@ -1,3 +1,21 @@
+# Add encrypted data storage helpers
+import os
+from utils.crypto_utils import encrypt_data, decrypt_data, load_encryption_key
+
+KEY_PATH = os.path.join(os.path.dirname(__file__), 'db_encryption.key')
+if not os.path.exists(KEY_PATH):
+    from utils.crypto_utils import generate_encryption_key
+    generate_encryption_key(KEY_PATH)
+ENCRYPTION_KEY = load_encryption_key(KEY_PATH)
+
+def store_sensitive_data(cursor, table, data):
+    encrypted = encrypt_data(data.encode(), ENCRYPTION_KEY)
+    cursor.execute(f"INSERT INTO {table} (data) VALUES (?)", (encrypted,))
+
+def load_sensitive_data(cursor, table):
+    cursor.execute(f"SELECT data FROM {table}")
+    encrypted = cursor.fetchone()[0]
+    return decrypt_data(encrypted, ENCRYPTION_KEY).decode()
 import sqlite3
 import threading
 from pathlib import Path
@@ -38,6 +56,16 @@ class DBHandler:
     - Full peer/message CRUD
     - Simple migration/version table
     """
+
+    def get_my_onion_address(self, peer_id: str) -> str:
+        """Return the onion address for the local user/device."""
+        try:
+            row = self.get_peer(peer_id)
+            if row and 'onion_address' in row.keys() and row['onion_address']:
+                return row['onion_address']
+        except Exception:
+            pass
+        return "Not available (Start Tor service to generate)"
 
     # File metadata CRUD
     def insert_file_metadata(self, file_name: str, file_path: str, file_hash: str, file_size: int, message_id: str = None, peer_id: str = None, timestamp: int = None) -> int:

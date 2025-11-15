@@ -1,0 +1,43 @@
+======================================================================
+LIBRA v2.0 - PHASE 8 TEST SUMMARY REPORT
+======================================================================
+Generated: 2025-11-15 02:16:42
+Started: 2025-11-15 02:16:27
+Completed: 2025-11-15 02:16:42
+Total Duration: 14.93s
+
+OVERALL RESULTS:
+  Total Test Suites: 6
+  Passed: 0 ✓
+  Failed: 6 ✗
+  Success Rate: 0.0%
+
+TEST SUITE RESULTS:
+----------------------------------------------------------------------
+✗ FAILED | Connectivity Testing
+         Duration: 0.23s
+         File: test_connectivity_benchmarks.py
+
+✗ FAILED | Security & Penetration Testing
+         Duration: 0.23s
+         File: test_security_penetration.py
+
+✗ FAILED | Privacy Analysis
+         Duration: 0.23s
+         File: test_privacy_analysis.py
+
+✗ FAILED | Isolation Verification
+         Duration: 0.08s
+         File: test_isolation_verification.py
+
+✗ FAILED | Data Protection Audit
+         Duration: 0.09s
+         File: test_data_protection_audit.py
+
+✗ FAILED | Dependency Security
+         Duration: 14.06s
+         File: test_dependency_security.py
+
+======================================================================
+✗ MULTIPLE TESTS FAILED - SYSTEM NOT READY FOR PRODUCTION
+======================================================================

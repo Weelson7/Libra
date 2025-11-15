@@ -1,0 +1,51 @@
+{
+  "test_run": {
+    "start_time": "2025-11-15T02:16:27.128480",
+    "end_time": "2025-11-15T02:16:42.054417",
+    "duration_seconds": 14.925937
+  },
+  "summary": {
+    "total_suites": 6,
+    "passed": 0,
+    "failed": 6,
+    "success_rate": 0.0
+  },
+  "test_suites": [
+    {
+      "name": "Connectivity Testing",
+      "filename": "test_connectivity_benchmarks.py",
+      "success": false,
+      "duration": 0.22519373893737793
+    },
+    {
+      "name": "Security & Penetration Testing",
+      "filename": "test_security_penetration.py",
+      "success": false,
+      "duration": 0.2311551570892334
+    },
+    {
+      "name": "Privacy Analysis",
+      "filename": "test_privacy_analysis.py",
+      "success": false,
+      "duration": 0.23454737663269043
+    },
+    {
+      "name": "Isolation Verification",
+      "filename": "test_isolation_verification.py",
+      "success": false,
+      "duration": 0.07947278022766113
+    },
+    {
+      "name": "Data Protection Audit",
+      "filename": "test_data_protection_audit.py",
+      "success": false,
+      "duration": 0.08655762672424316
+    },
+    {
+      "name": "Dependency Security",
+      "filename": "test_dependency_security.py",
+      "success": false,
+      "duration": 14.064598798751831
+    }
+  ]
+}

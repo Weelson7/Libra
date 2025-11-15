@@ -1,0 +1,110 @@
+======================================================================
+LIBRA v2.0 - PHASE 8 DETAILED TEST REPORT
+======================================================================
+Generated: 2025-11-15 02:16:42
+
+======================================================================
+TEST SUITE: Connectivity Testing
+File: test_connectivity_benchmarks.py
+Status: FAILED
+Duration: 0.23s
+----------------------------------------------------------------------
+OUTPUT:
+
+
+======================================================================
+TEST SUITE: Security & Penetration Testing
+File: test_security_penetration.py
+Status: FAILED
+Duration: 0.23s
+----------------------------------------------------------------------
+OUTPUT:
+======================================================================
+PHASE 8: SECURITY & PENETRATION TESTING SUITE
+======================================================================
+
+[Security] Testing filesystem access restrictions...
+
+
+======================================================================
+TEST SUITE: Privacy Analysis
+File: test_privacy_analysis.py
+Status: FAILED
+Duration: 0.23s
+----------------------------------------------------------------------
+OUTPUT:
+======================================================================
+PHASE 8: PRIVACY ANALYSIS TESTING SUITE
+======================================================================
+
+[Privacy] Testing Tor IP obfuscation...
+
+
+======================================================================
+TEST SUITE: Isolation Verification
+File: test_isolation_verification.py
+Status: FAILED
+Duration: 0.08s
+----------------------------------------------------------------------
+OUTPUT:
+======================================================================
+PHASE 8: ISOLATION VERIFICATION TESTING SUITE
+======================================================================
+
+[Isolation] Testing host filesystem isolation...
+  Allowed directories:
+
+
+======================================================================
+TEST SUITE: Data Protection Audit
+File: test_data_protection_audit.py
+Status: FAILED
+Duration: 0.09s
+----------------------------------------------------------------------
+OUTPUT:
+======================================================================
+PHASE 8: DATA PROTECTION AUDIT TESTING SUITE
+======================================================================
+
+[Data Protection] Testing database encryption...
+  Database not found, skipping test
+
+[Data Protection] Testing key file encryption...
+  Keys directory not found, skipping test
+
+[Data Protection] Testing log file safety...
+
+
+======================================================================
+TEST SUITE: Dependency Security
+File: test_dependency_security.py
+Status: FAILED
+Duration: 14.06s
+----------------------------------------------------------------------
+OUTPUT:
+======================================================================
+PHASE 8: DEPENDENCY SECURITY SCANNING SUITE
+======================================================================
+
+[Dependency Security] Scanning Python packages...
+  Found 142 installed packages
+  Error scanning packages: 'charmap' codec can't encode character '\u2713' in position 2: character maps to <undefined>
+
+[Dependency Security] Checking for outdated packages...
+  Found 19 outdated packages:
+  Error checking outdated packages: 'charmap' codec can't encode character '\u2192' in position 19: character maps to <undefined>
+
+[Dependency Security] Checking cryptography library version...
+  Cryptography version: 46.0.3
+  Error checking cryptography version: 'charmap' codec can't encode character '\u2713' in position 2: character maps to <undefined>
+
+[Dependency Security] Checking for known vulnerable versions...
+  Error checking versions: 'charmap' codec can't encode character '\u2713' in position 2: character maps to <undefined>
+
+[Supply Chain] Testing requirements.txt integrity...
+  Found 18 requirements
+
+
+======================================================================
+END OF DETAILED REPORT
+======================================================================

@@ -19,10 +19,22 @@ class TorManager:
     def start_tor(self):
         # Start Tor in isolated environment (container/sandbox logic to be added)
         tor_cmd = [self.tor_path, '--ControlPort', str(self.control_port), '--DataDirectory', self.data_dir]
-        self.tor_process = subprocess.Popen(tor_cmd)
+        print(f"[TorManager] Starting Tor with command: {tor_cmd}")
+        try:
+            self.tor_process = subprocess.Popen(tor_cmd)
+        except FileNotFoundError as e:
+            print(f"[TorManager] ERROR: Tor executable not found: {self.tor_path}")
+            raise
+        except Exception as e:
+            print(f"[TorManager] ERROR: Failed to start Tor: {e}")
+            raise
         # Wait for Tor to be ready
-        self.controller = Controller.from_port(port=self.control_port)
-        self.controller.authenticate(password=self.password)
+        try:
+            self.controller = Controller.from_port(port=self.control_port)
+            self.controller.authenticate(password=self.password)
+        except Exception as e:
+            print(f"[TorManager] ERROR: Failed to connect/authenticate to Tor control port: {e}")
+            raise
 
     def create_ephemeral_onion_service(self, port):
         # Create ephemeral v3 onion service
@@ -39,6 +51,20 @@ class TorManager:
 
     def __del__(self):
         self.stop_tor()
+
+    def wait_for_tor_bootstrap(self, timeout=60):
+        """Wait until Tor is fully bootstrapped (100%) or timeout (seconds)"""
+        import time
+        start = time.time()
+        while time.time() - start < timeout:
+            try:
+                status = self.controller.get_info("status/bootstrap-phase")
+                if status and "100%" in status:
+                    return True
+            except Exception:
+                pass
+            time.sleep(0.5)
+        return False
 
 # Example usage:
 # tor_mgr = TorManager()

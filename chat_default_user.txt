@@ -1,0 +1,5 @@
+Chat history with default_user
+==================================================
+
+[2025-11-15 04:16:21] default_user: hey
+[2025-11-15 04:19:13] You: 📎 Sending file: Labtext_lab1(1).pdf (89684 bytes)

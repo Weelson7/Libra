@@ -15,7 +15,13 @@ import base64
 from typing import List, Tuple, Optional
 
 from config import PEER_DISCOVERY_PORT
-from utils.crypto_utils import load_keys_for_peer, sign_message, verify_signature, serialize_public_key
+from utils.crypto_utils import (
+    load_keys_for_peer, 
+    sign_message, 
+    verify_signature, 
+    serialize_public_key,
+    load_public_key
+)
 from db.db_handler import DBHandler
 
 
@@ -124,6 +130,5 @@ class PeerDiscovery:
 
 
 def load_public_from_pem(pem: bytes):
-    # Lazy import to avoid circular deps
-    from cryptography.hazmat.primitives import serialization
-    return serialization.load_pem_public_key(pem)
+    """Load public key from PEM bytes."""
+    return load_public_key(pem)

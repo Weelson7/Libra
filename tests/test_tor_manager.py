@@ -25,5 +25,26 @@ class TestTorManager(unittest.TestCase):
         finally:
             tor_mgr.stop_tor()
 
+    def test_circuit_caching_and_compression(self):
+        tor_mgr = TorManager(
+            tor_path=config.TOR_PATH,
+            control_port=config.TOR_CONTROL_PORT,
+            password=config.TOR_PASSWORD
+        )
+        try:
+            tor_mgr.start_tor()
+            # Create onion service for peer1
+            onion1, key1 = tor_mgr.create_ephemeral_onion_service(12345, peer_id='peer1')
+            # Create again for same peer, should reuse circuit
+            onion2, key2 = tor_mgr.create_ephemeral_onion_service(12345, peer_id='peer1')
+            assert onion1 == onion2
+            # Test compression
+            data = b'This is a test message for compression.'
+            compressed = tor_mgr.compress_data(data)
+            decompressed = tor_mgr.decompress_data(compressed)
+            assert decompressed == data
+        finally:
+            tor_mgr.stop_tor()
+
 if __name__ == '__main__':
     unittest.main()

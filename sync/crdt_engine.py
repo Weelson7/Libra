@@ -2,13 +2,16 @@
 CRDT Engine for Message Synchronization
 """
 
+from typing import Dict, List, Any, Optional
+
+
 class CRDTEngine:
     def __init__(self):
         """
         Initialize the CRDT Engine with necessary data structures.
         """
-        self.vector_clocks = {}
-        self.messages = {}
+        self.vector_clocks: Dict[str, int] = {}
+        self.messages: Dict[str, Dict[str, Any]] = {}
 
     def update_vector_clock(self, peer_id):
         """
@@ -39,11 +42,11 @@ class CRDTEngine:
             "timestamp": self.vector_clocks[peer_id]
         }
 
-    def get_missing_messages(self, known_clock):
+    def get_missing_messages(self, known_clock: Dict[str, int]) -> List[Dict[str, Any]]:
         """
         Get messages that are missing based on the known vector clock.
         """
-        missing_messages = []
+        missing_messages: List[Dict[str, Any]] = []
         for message_id, message in self.messages.items():
             peer_id = message["peer_id"]
             if peer_id not in known_clock or message["timestamp"] > known_clock[peer_id]:

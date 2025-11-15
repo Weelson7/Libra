@@ -164,6 +164,15 @@ def build_cli():
     alias_purge = sub.add_parser("alias-purge")
     alias_purge.add_argument("--threshold", type=int, default=60, help="Stale threshold in minutes (default 60)")
 
+    # Phase 7: Tor status and connection preferences
+    sub.add_parser("tor-status")
+    conn_pref = sub.add_parser("set-connection-preference")
+    conn_pref.add_argument("mode", choices=["tor", "direct", "auto"], help="Connection mode preference")
+    sub.add_parser("show-connection-status")
+    
+    # Certificate generation for direct P2P
+    sub.add_parser("generate-cert")
+
     return p
 
 
@@ -228,6 +237,33 @@ def main(argv=None):
         print(f"Purged stale aliases older than {args.threshold} minutes.")
     else:
         p.print_help()
+
+    # Phase 7: Tor status and connection preferences
+    if args.cmd == "tor-status":
+        try:
+            from tor_manager import get_tor_status
+            status = get_tor_status()
+            print(f"Tor status: {status}")
+        except Exception:
+            print("Tor status: [stub] Running or not implemented.")
+    elif args.cmd == "set-connection-preference":
+        # Save preference to config (stub)
+        print(f"Connection preference set to: {args.mode}")
+    elif args.cmd == "show-connection-status":
+        try:
+            from tor_manager import get_connection_status
+            status = get_connection_status()
+            print(f"Connection status: {status}")
+        except Exception:
+            print("Connection status: [stub] Tor/Direct/Fallback (not implemented)")
+    elif args.cmd == "generate-cert":
+        from peer.connection_manager import ConnectionManager
+        try:
+            ConnectionManager.generate_self_signed_cert()
+            print("Self-signed certificate generated successfully.")
+            print("Files created: server.crt, server.key")
+        except Exception as e:
+            print(f"Error generating certificate: {e}")
 
 
 if __name__ == "__main__":

@@ -16,32 +16,18 @@ HTTP_PORT = int(os.getenv("LIBRA_HTTP_PORT", "8443"))
     
 # Tor configuration
 TOR_ENABLED = True
-_proj_utils = Path(__file__).parent / "utils"
-# Try common locations for tor executable inside the `utils` directory
-if (_proj_utils / "tor.exe").exists():
-    TOR_PATH = str(_proj_utils / "tor.exe")
-elif (_proj_utils / "tor" / "tor.exe").exists():
-    TOR_PATH = str(_proj_utils / "tor" / "tor.exe")
-else:
-    # look for bundled expert bundle under utils
-    found = None
-    for p in _proj_utils.iterdir():
-        if p.is_dir() and p.name.startswith('tor-expert-bundle'):
-            candidate = p / 'tor' / 'tor.exe'
-            if candidate.exists():
-                found = candidate
-                break
-    if found:
-        TOR_PATH = str(found)
-    else:
-        # fallback to system tor on PATH
-        TOR_PATH = 'tor'
+# Explicitly set the bundled tor.exe path for Windows
+TOR_PATH = str(Path(__file__).parent / "utils" / "tor-expert-bundle-windows-x86_64-15.0.1" / "tor" / "tor.exe")
 TOR_CONTROL_PORT = 9051
 TOR_PASSWORD = None  # Set if Tor control port is password protected
 TOR_CIRCUIT_TIMEOUT = 30  # seconds
 
 # Key storage
 KEY_DIR = Path(os.getenv("LIBRA_KEY_DIR", DATA_DIR / "keys"))
+
+# User identification for multi-device support
+# Default user ID - in production, this should come from authentication
+USER_ID = os.getenv("LIBRA_USER_ID", "default_user")
 
 
 # Logging / runtime
@@ -90,3 +76,4 @@ if __name__ == "__main__":
     print("DB_PATH:", DB_PATH)
     print("LOG_DIR:", LOG_DIR)
     print("LOG_LEVEL:", LOG_LEVEL)
+    print("TOR_PATH:", TOR_PATH)
