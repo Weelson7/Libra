@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from pathlib import Path
 import os
 from typing import Tuple
 
@@ -12,6 +13,32 @@ LOG_DIR = Path(os.getenv("LIBRA_LOG_DIR", BASE_DIR / "logs"))
 # Network defaults
 PEER_DISCOVERY_PORT = int(os.getenv("LIBRA_PEER_DISCOVERY_PORT", "37020"))
 HTTP_PORT = int(os.getenv("LIBRA_HTTP_PORT", "8443"))
+    
+# Tor configuration
+TOR_ENABLED = True
+_proj_utils = Path(__file__).parent / "utils"
+# Try common locations for tor executable inside the `utils` directory
+if (_proj_utils / "tor.exe").exists():
+    TOR_PATH = str(_proj_utils / "tor.exe")
+elif (_proj_utils / "tor" / "tor.exe").exists():
+    TOR_PATH = str(_proj_utils / "tor" / "tor.exe")
+else:
+    # look for bundled expert bundle under utils
+    found = None
+    for p in _proj_utils.iterdir():
+        if p.is_dir() and p.name.startswith('tor-expert-bundle'):
+            candidate = p / 'tor' / 'tor.exe'
+            if candidate.exists():
+                found = candidate
+                break
+    if found:
+        TOR_PATH = str(found)
+    else:
+        # fallback to system tor on PATH
+        TOR_PATH = 'tor'
+TOR_CONTROL_PORT = 9051
+TOR_PASSWORD = None  # Set if Tor control port is password protected
+TOR_CIRCUIT_TIMEOUT = 30  # seconds
 
 # Key storage
 KEY_DIR = Path(os.getenv("LIBRA_KEY_DIR", DATA_DIR / "keys"))

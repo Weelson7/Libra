@@ -27,6 +27,7 @@ class Transaction:
             self.lock.release()
 
 
+
 class DBHandler:
     """SQLite DB handler for Phase 2.
 
@@ -37,6 +38,22 @@ class DBHandler:
     - Full peer/message CRUD
     - Simple migration/version table
     """
+
+    # File metadata CRUD
+    def insert_file_metadata(self, file_name: str, file_path: str, file_hash: str, file_size: int, message_id: str = None, peer_id: str = None, timestamp: int = None) -> int:
+        sql = "INSERT INTO file_metadata (file_name, file_path, file_hash, file_size, message_id, peer_id, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)"
+        cur = self.execute(sql, (file_name, file_path, file_hash, file_size, message_id, peer_id, timestamp))
+        return cur.lastrowid
+
+    def get_file_metadata_by_message(self, message_id: str):
+        sql = "SELECT * FROM file_metadata WHERE message_id = ?"
+        rows = self.query(sql, (message_id,))
+        return rows
+
+    def get_file_metadata_by_peer(self, peer_id: str):
+        sql = "SELECT * FROM file_metadata WHERE peer_id = ?"
+        rows = self.query(sql, (peer_id,))
+        return rows
 
     def __init__(self, db_path: Optional[Path] = None, busy_timeout_ms: int = 5000):
         self.db_path = Path(db_path) if db_path else Path(DB_PATH)
@@ -151,6 +168,33 @@ class DBHandler:
 
     def update_message_status(self, message_id: str, sync_status: int):
         self.execute("UPDATE messages SET sync_status = ? WHERE message_id = ?", (sync_status, message_id))
+
+    def get_pending_messages_for_peer(self, peer_id: str) -> List[sqlite3.Row]:
+        """Return all pending messages for a given peer."""
+        return self.query("SELECT * FROM messages WHERE peer_id = ? AND sync_status = 0 ORDER BY timestamp ASC", (peer_id,))
+
+    def retry_pending_messages(self, peer_id: str, send_func, max_retries: int = 5):
+        """Attempt to resend all pending messages for a peer with exponential backoff."""
+        import time
+        pending = self.get_pending_messages_for_peer(peer_id)
+        for msg in pending:
+            retries = 0
+            backoff = 1
+            while retries < max_retries:
+                success = send_func(msg)
+                if success:
+                    self.update_message_status(msg["message_id"], 1)  # Mark as sent
+                    break
+                else:
+                    time.sleep(backoff)
+                    backoff *= 2
+                    retries += 1
+            if retries == max_retries:
+                print(f"Failed to send message {msg['message_id']} after {max_retries} retries.")
+
+    def mark_message_delivered(self, message_id: str):
+        """Mark a message as delivered (sync_status=2)."""
+        self.update_message_status(message_id, 2)
 
     def delete_message(self, message_id: str):
         self.execute("DELETE FROM messages WHERE message_id = ?", (message_id,))

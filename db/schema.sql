@@ -35,3 +35,17 @@ CREATE TABLE IF NOT EXISTS sync_state (
     last_sync_timestamp INTEGER,
     vector_clock TEXT
 );
+
+-- File metadata for attachments
+CREATE TABLE IF NOT EXISTS file_metadata (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_hash TEXT NOT NULL,
+    file_size INTEGER NOT NULL,
+    message_id TEXT,
+    peer_id TEXT,
+    timestamp INTEGER,
+    FOREIGN KEY(message_id) REFERENCES messages(message_id) ON DELETE CASCADE,
+    FOREIGN KEY(peer_id) REFERENCES peers(peer_id) ON DELETE CASCADE
+);

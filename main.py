@@ -146,6 +146,24 @@ def build_cli():
 
     sub.add_parser("read-local")
 
+    # Alias registry commands
+    alias_pub = sub.add_parser("alias-publish")
+    alias_pub.add_argument("onion", help="Onion address")
+    alias_pub.add_argument("public_key", help="Public key (PEM or fingerprint)")
+    alias_pub.add_argument("--alias", help="Custom alias (optional)")
+    alias_pub.add_argument("--private", action="store_true", help="Publish as private alias")
+
+    alias_lookup = sub.add_parser("alias-lookup")
+    alias_lookup.add_argument("alias", help="Alias to look up")
+    alias_lookup.add_argument("--include-private", action="store_true", help="Include private aliases")
+
+    alias_remove = sub.add_parser("alias-remove")
+    alias_remove.add_argument("alias", help="Alias to remove")
+    alias_remove.add_argument("--include-private", action="store_true", help="Remove from private registry too")
+
+    alias_purge = sub.add_parser("alias-purge")
+    alias_purge.add_argument("--threshold", type=int, default=60, help="Stale threshold in minutes (default 60)")
+
     return p
 
 
@@ -165,6 +183,49 @@ def main(argv=None):
     elif args.cmd == "read-local":
         res = cmd_read_local()
         print(json.dumps(res, indent=2))
+    elif args.cmd == "alias-publish":
+        from utils.alias_registry import AliasRegistry
+        registry = getattr(main, "_alias_registry", None)
+        if registry is None:
+            registry = AliasRegistry()
+            main._alias_registry = registry
+        record = registry.publish_alias(
+            onion=args.onion,
+            public_key=args.public_key,
+            alias=args.alias,
+            is_public=not args.private
+        )
+        print(f"Published alias: {record.alias}\nOnion: {record.onion}\nPublic key: {record.public_key}\nType: {'Public' if record.is_public else 'Private'}")
+    elif args.cmd == "alias-lookup":
+        from utils.alias_registry import AliasRegistry
+        registry = getattr(main, "_alias_registry", None)
+        if registry is None:
+            registry = AliasRegistry()
+            main._alias_registry = registry
+        record = registry.lookup_alias(args.alias, include_private=args.include_private)
+        if record:
+            print(f"Alias: {record.alias}\nOnion: {record.onion}\nPublic key: {record.public_key}\nLast seen: {record.last_seen}\nType: {'Public' if record.is_public else 'Private'}")
+        else:
+            print("Alias not found.")
+    elif args.cmd == "alias-remove":
+        from utils.alias_registry import AliasRegistry
+        registry = getattr(main, "_alias_registry", None)
+        if registry is None:
+            registry = AliasRegistry()
+            main._alias_registry = registry
+        removed = registry.remove_alias(args.alias, include_private=args.include_private)
+        if removed:
+            print(f"Removed alias: {args.alias}")
+        else:
+            print("Alias not found.")
+    elif args.cmd == "alias-purge":
+        from utils.alias_registry import AliasRegistry
+        registry = getattr(main, "_alias_registry", None)
+        if registry is None:
+            registry = AliasRegistry()
+            main._alias_registry = registry
+        registry.purge_stale(threshold_minutes=args.threshold)
+        print(f"Purged stale aliases older than {args.threshold} minutes.")
     else:
         p.print_help()
 
